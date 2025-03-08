@@ -1,15 +1,20 @@
 <?php
 
+
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\FrameController;
+use App\Http\Controllers\FrameLensController;
 use App\Http\Controllers\FrameShapeController;
+use App\Http\Controllers\FramesShapeController;
 use App\Http\Controllers\LensController;
 use App\Http\Controllers\LensTypeController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\FrameColorController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -94,4 +99,36 @@ Route::prefix('sizes')->middleware(['auth:api'])->group(function () {
     Route::get('/{id}', [SizeController::class, 'show']);
     Route::put('/{id}', [SizeController::class, 'update']);
     Route::delete('/{id}', [SizeController::class, 'destroy']);
+});
+
+Route::prefix('frames')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [FrameController::class, 'index']);
+    Route::post('/', [FrameController::class, 'store']);
+    Route::get('/{id}', [FrameController::class, 'show']);
+    Route::put('/{id}', [FrameController::class, 'update']);
+    Route::delete('/{id}', [FrameController::class, 'destroy']);
+});
+
+Route::prefix('frame-lenses')->middleware(['auth:api'])->group(function () {
+    Route::post('/', [FrameLensController::class, 'store']);
+    Route::get('/', [FrameLensController::class, 'index']);
+    Route::get('{id}', [FrameLensController::class, 'show']);
+    Route::put('{id}', [FrameLensController::class, 'update']);
+    Route::delete('{id}', [FrameLensController::class, 'destroy']);
+});
+
+Route::prefix('frames-shapes')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [FramesShapeController::class, 'index']);
+    Route::post('/', [FramesShapeController::class, 'store']);
+    Route::get('/{id}', [FramesShapeController::class, 'show']);
+    Route::put('/{id}', [FramesShapeController::class, 'update']);
+    Route::delete('/{id}', [FramesShapeController::class, 'destroy']);
+});
+
+Route::prefix('frame-colors')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [FrameColorController::class, 'index']);
+    Route::post('/', [FrameColorController::class, 'store']);
+    Route::get('{id}', [FrameColorController::class, 'show']);
+    Route::put('{id}', [FrameColorController::class, 'update']);
+    Route::delete('{id}', [FrameColorController::class, 'destroy']);
 });
