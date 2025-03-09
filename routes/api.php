@@ -7,14 +7,21 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\FrameController;
 use App\Http\Controllers\FrameLensController;
 use App\Http\Controllers\FrameShapeController;
+use App\Http\Controllers\FrameSizeController;
 use App\Http\Controllers\FramesShapeController;
 use App\Http\Controllers\LensController;
 use App\Http\Controllers\LensTypeController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderItemController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SizeController;
+use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\FrameColorController;
+use App\Http\Controllers\WishListController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -131,4 +138,60 @@ Route::prefix('frame-colors')->middleware(['auth:api'])->group(function () {
     Route::get('{id}', [FrameColorController::class, 'show']);
     Route::put('{id}', [FrameColorController::class, 'update']);
     Route::delete('{id}', [FrameColorController::class, 'destroy']);
+});
+
+Route::prefix('frame-sizes')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [FrameSizeController::class, 'index']);
+    Route::post('/', [FrameSizeController::class, 'store']);
+    Route::get('/{id}', [FrameSizeController::class, 'show']);
+    Route::put('/{id}', [FrameSizeController::class, 'update']);
+    Route::delete('/{id}', [FrameSizeController::class, 'destroy']);
+});
+
+
+Route::prefix('orders')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [OrderController::class, 'index']);
+    Route::post('/', [OrderController::class, 'store']);
+    Route::get('/{id}', [OrderController::class, 'show']);
+    Route::put('/{id}', [OrderController::class, 'update']);
+    Route::delete('/{id}', [OrderController::class, 'destroy']);
+});
+
+Route::prefix('order-items')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [OrderItemController::class, 'index']);
+    Route::post('/', [OrderItemController::class, 'store']);
+    Route::put('/{orderItem}', [OrderItemController::class, 'update']);
+    Route::get('/{orderItem}', [OrderItemController::class, 'show']);
+    Route::delete('/{orderItem}', [OrderItemController::class, 'destroy']);
+});
+
+Route::prefix('payments')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [PaymentController::class, 'index']);
+    Route::post('/', [PaymentController::class, 'store']);
+    Route::get('/{id}', [PaymentController::class, 'show']);
+    Route::put('/{id}', [PaymentController::class, 'update']);
+    Route::delete('/{id}', [PaymentController::class, 'destroy']);
+});
+
+Route::prefix('reviews')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [ReviewController::class, 'index']);
+    Route::post('/', [ReviewController::class, 'store']);
+    Route::get('/{id}', [ReviewController::class, 'show']);
+    Route::put('/{id}', [ReviewController::class, 'update']);
+    Route::delete('/{id}', [ReviewController::class, 'destroy']);
+});
+
+Route::prefix('testimonials')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [TestimonialController::class, 'index']);
+    Route::post('/', [TestimonialController::class, 'store']);
+    Route::get('/{id}', [TestimonialController::class, 'show']);
+    Route::put('/{id}', [TestimonialController::class, 'update']);
+    Route::delete('/{id}', [TestimonialController::class, 'destroy']);
+});
+
+Route::prefix('wish-list')->middleware(['auth:api'])->group(function () {
+    Route::get('/', [WishListController::class, 'index']);
+    Route::post('/', [WishListController::class, 'store']);
+    Route::get('/{id}', [WishListController::class, 'show']);
+    Route::delete('/{id}', [WishListController::class, 'destroy']);
 });

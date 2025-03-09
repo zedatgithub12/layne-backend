@@ -38,11 +38,11 @@ class FrameColorController extends Controller
                 'status' => 'nullable|in:available,unavailable'
             ]);
 
-            $existingFrameLens = FrameColor::where('frame_id', $request->frame_id)
+            $existingFrameColor = FrameColor::where('frame_id', $request->frame_id)
                 ->where('color_id', $request->color_id)
                 ->first();
 
-            if ($existingFrameLens) {
+            if ($existingFrameColor) {
                 return response()->json([
                     'success' => false,
                     'message' => 'The combination of this frame and color already exists.',
@@ -101,11 +101,11 @@ class FrameColorController extends Controller
 
             $frameColor = FrameColor::findOrFail($id);
 
-            $existingFrameLens = FrameColor::where('frame_id', $request->frame_id)
+            $existingFrameColor = FrameColor::where('frame_id', $request->frame_id)
                 ->where('color_id', $request->color_id)->where('status', $request->status)
                 ->first();
 
-            if ($existingFrameLens) {
+            if ($existingFrameColor) {
                 return response()->json([
                     'success' => false,
                     'message' => 'The combination of this frame and color already exists.',
