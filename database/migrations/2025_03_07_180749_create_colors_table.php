@@ -13,10 +13,14 @@ return new class extends Migration {
         Schema::create('colors', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
-            $table->string('hex_code')->unique();
-            $table->string('slug')->unique();
+            $table->string('color_code')->unique();
             $table->text('description')->nullable();
-            $table->enum('status', ['available', 'unavailable'])->default('available');
+            $table->boolean('is_textured')->default(false);
+            $table->boolean('is_mixed')->default(false);
+            $table->json('mixed_colors')->nullable();
+            $table->string('texture_image')->nullable();
+            $table->json('tags')->nullable();
+            $table->enum('status', ['published', 'draft', 'unpublished'])->default('draft');
             $table->timestamps();
         });
     }

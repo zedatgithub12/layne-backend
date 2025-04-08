@@ -14,8 +14,8 @@ return new class extends Migration {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->text('description');
-            $table->string('use_case');
-            $table->string('thickness');
+            $table->string('thumbnail')->nullable();
+            $table->json('tags')->nullable();
             $table->enum('status', ['available', 'unavailable'])->default('available');
             $table->timestamps();
         });

@@ -7,13 +7,38 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Exception;
+use Storage;
 
 class FrameShapeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $frameShapes = FrameShape::all();
+            $query = FrameShape::query();
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")->orWhereJsonContains('tags', $search);
+
+                });
+            }
+
+            if ($request->filled('status')) {
+                $status = $request->query('status');
+                $query->where('status', $status);
+            }
+
+            $limit = $request->input('limit', 10);
+            $frameShapes = $query->paginate($limit);
+
+            // Prefix API_IMAGE_HOST to each thumbnail
+            $frameShapes->getCollection()->transform(function ($frameShape) {
+                $frameShape->thumbnail = env('API_IMAGE_HOST') . $frameShape->thumbnail;
+                return $frameShape;
+            });
+
             return response()->json([
                 'success' => true,
                 'message' => 'Frame Shapes retrieved successfully',
@@ -28,23 +53,27 @@ class FrameShapeController extends Controller
         }
     }
 
+
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|unique:frame_shapes,slug',
             'description' => 'required|string',
-            'rim_type' => 'required|string|max:255',
-            'bridge_width' => 'required|integer|min:1',
-            'temple_length' => 'required|integer|min:1',
-            'lens_width' => 'required|integer|min:1',
-            'frame_material' => ['required', Rule::in(['iron', 'plastic', 'wood'])],
-            'face_shape_suitability' => 'required|string|max:255',
+            'thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:50',
             'status' => ['required', Rule::in(['available', 'out-of-stock', 'unavailable'])],
         ]);
 
         try {
             $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
+
+            if ($request->hasFile('thumbnail')) {
+                $thumbnailPath = $request->file('thumbnail')->store('images', 'public');
+                $validated['thumbnail'] = $thumbnailPath;
+            }
+
             $frameShape = FrameShape::create($validated);
 
             return response()->json([
@@ -65,6 +94,8 @@ class FrameShapeController extends Controller
     {
         try {
             $frameShape = FrameShape::findOrFail($id);
+            $frameShape->thumbnail = env('API_IMAGE_HOST') . $frameShape->thumbnail;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Frame Shape retrieved successfully',
@@ -81,27 +112,46 @@ class FrameShapeController extends Controller
 
     public function update(Request $request, $id)
     {
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'slug' => 'nullable|string|unique:frame_shapes,slug,' . $id,
+            'slug' => 'nullable|string|unique:frame_shapes,slug,' . $id . ',id',
             'description' => 'sometimes|string',
-            'rim_type' => 'sometimes|string|max:255',
-            'bridge_width' => 'sometimes|integer|min:1',
-            'temple_length' => 'sometimes|integer|min:1',
-            'lens_width' => 'sometimes|integer|min:1',
-            'frame_material' => ['sometimes', Rule::in(['iron', 'plastic', 'wood'])],
-            'face_shape_suitability' => 'sometimes|string|max:255',
-            'status' => ['sometimes', Rule::in(['available', 'out-of-stock', 'unavailable'])],
+            'thumbnail' => 'sometimes|file|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:50',
         ]);
 
         try {
             $frameShape = FrameShape::findOrFail($id);
+
+            if (!$frameShape) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'the shape is not found in database',
+
+                ], 404);
+
+            }
+
+            // Handle file upload
+            if ($request->hasFile('thumbnail')) {
+                // Delete old thumbnail if exists
+                if ($frameShape->thumbnail) {
+                    Storage::disk('public')->delete($frameShape->thumbnail);
+                }
+
+                // Store new file
+                $thumbnailPath = $request->file('thumbnail')->store('images', 'public');
+                $validated['thumbnail'] = $thumbnailPath;
+            }
+
             $frameShape->update($validated);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Frame Shape updated successfully',
-                'data' => $frameShape
+                'data' => $request->all()
             ], 200);
         } catch (Exception $e) {
             return response()->json([

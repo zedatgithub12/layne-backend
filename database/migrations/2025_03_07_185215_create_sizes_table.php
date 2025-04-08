@@ -13,11 +13,10 @@ return new class extends Migration {
         Schema::create('sizes', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('shorter_name')->nullable();
+            $table->string('width_range')->nullable();
             $table->text('description')->nullable();
-            $table->integer('lens_width');
-            $table->integer('bridge_width');
-            $table->integer('temple_length');
+            $table->json('tags')->nullable();
             $table->enum('status', ['available', 'unavailable'])->default('available');
             $table->timestamps();
         });

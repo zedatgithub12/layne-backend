@@ -7,13 +7,40 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Exception;
+use Storage;
 
 class ColorController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $colors = Color::all();
+            $query = Color::query();
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")->orWhereJsonContains('tags', $search);
+                });
+            }
+
+            if ($request->filled('status')) {
+                $status = $request->query('status');
+                $query->where('status', $status);
+            }
+
+            $limit = $request->input('limit', 10);
+            $colors = $query->paginate($limit);
+
+            // Prefix API_IMAGE_HOST to each texture image
+            $colors->getCollection()->transform(function ($color) {
+
+                if ($color->texture_image) {
+                    $color->texture_image = env('API_IMAGE_HOST') . $color->texture_image;
+                }
+                return $color;
+            });
+
             return response()->json([
                 'success' => true,
                 'message' => 'Colors retrieved successfully',
@@ -22,7 +49,7 @@ class ColorController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching colors',
+                'message' => 'Error fetching  colors',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -32,14 +59,24 @@ class ColorController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:colors,name',
-            'hex_code' => 'required|string|size:7|regex:/^#[a-fA-F0-9]{6}$/|unique:colors,hex_code',
-            'slug' => 'nullable|string|unique:colors,slug',
+            'color_code' => 'required|string|size:7|regex:/^#[a-fA-F0-9]{6}$/|unique:colors,color_code',
             'description' => 'nullable|string',
-            'status' => ['required', Rule::in(['available', 'unavailable'])],
+            'is_textured' => 'nullable|boolean',
+            'texture_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'is_mixed' => 'nullable|boolean',
+            'mixed_colors' => 'nullable|array',
+            'mixed_colors.*' => 'string|max:50',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:50',
+            'status' => ['nullable', Rule::in(['published', "draft", 'unpublished'])],
         ]);
 
+
         try {
-            $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
+            if ($request->hasFile('texture_image')) {
+                $ImagePath = $request->file('texture_image')->store('images', 'public');
+                $validated['texture_image'] = $ImagePath;
+            }
             $color = Color::create($validated);
 
             return response()->json([
@@ -78,14 +115,30 @@ class ColorController extends Controller
     {
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255|unique:colors,name,' . $id,
-            'hex_code' => 'sometimes|string|size:7|regex:/^#[a-fA-F0-9]{6}$/|unique:colors,hex_code,' . $id,
-            'slug' => 'nullable|string|unique:colors,slug,' . $id,
+            'color_code' => 'sometimes|string|size:7|regex:/^#[a-fA-F0-9]{6}$/|unique:colors,color_code,' . $id,
             'description' => 'nullable|string',
-            'status' => ['sometimes', Rule::in(['available', 'unavailable'])],
+            'is_textured' => 'nullable|boolean',
+            'texture_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'is_mixed' => 'nullable|boolean',
+            'mixed_colors' => 'nullable|array',
+            'mixed_colors.*' => 'string|max:50',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:50',
+            'status' => ['sometimes', Rule::in(['published', "draft", 'unpublished'])],
         ]);
 
         try {
             $color = Color::findOrFail($id);
+
+            if ($request->hasFile('texture_image')) {
+                if ($color->texture_image) {
+                    Storage::disk('public')->delete($color->texture_image);
+                }
+
+                // Store new file
+                $imagePath = $request->file('texture_image')->store('images', 'public');
+                $validated['texture_image'] = $imagePath;
+            }
             $color->update($validated);
 
             return response()->json([

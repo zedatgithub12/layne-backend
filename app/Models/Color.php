@@ -12,13 +12,19 @@ class Color extends Model
 
     protected $fillable = [
         'name',
-        'hex_code',
-        'slug',
+        'color_code',
         'description',
+        'is_textured',
+        'texture_image',
+        'is_mixed',
+        'mixed_colors',
+        'tags',
         'status',
     ];
 
     protected $casts = [
         'status' => 'string',
+        'tags' => 'array',
+        'mixed_colors' => 'array',
     ];
 }

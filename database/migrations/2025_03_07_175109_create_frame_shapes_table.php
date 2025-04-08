@@ -15,12 +15,8 @@ return new class extends Migration {
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description');
-            $table->string('rim_type');
-            $table->integer('bridge_width');
-            $table->integer('temple_length');
-            $table->integer('lens_width');
-            $table->enum('frame_material', ['iron', 'plastic', 'wood']);
-            $table->string('face_shape_suitability');
+            $table->string('thumbnail')->nullable();
+            $table->json('tags')->nullable();
             $table->enum('status', ['available', 'out-of-stock', 'unavailable'])->default('available');
             $table->timestamps();
         });

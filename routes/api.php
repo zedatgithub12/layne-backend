@@ -14,11 +14,13 @@ use App\Http\Controllers\LensTypeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\VariantController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\FrameColorController;
 use App\Http\Controllers\WishListController;
@@ -63,7 +65,7 @@ Route::prefix('categories')->middleware(['auth:api'])->group(function () {
     Route::get('/', [CategoryController::class, 'index']);
     Route::post('/', [CategoryController::class, 'store']);
     Route::get('/{id}', [CategoryController::class, 'show']);
-    Route::put('/{id}', [CategoryController::class, 'update']);
+    Route::patch('/{id}', [CategoryController::class, 'update']);
     Route::delete('/{id}', [CategoryController::class, 'destroy']);
 });
 
@@ -71,7 +73,7 @@ Route::prefix('lens-types')->middleware(['auth:api'])->group(function () {
     Route::get('/', [LensTypeController::class, 'index']);
     Route::post('/', [LensTypeController::class, 'store']);
     Route::get('/{id}', [LensTypeController::class, 'show']);
-    Route::put('/{id}', [LensTypeController::class, 'update']);
+    Route::patch('/{id}', [LensTypeController::class, 'update']);
     Route::delete('/{id}', [LensTypeController::class, 'destroy']);
 });
 
@@ -88,7 +90,7 @@ Route::prefix('frame-shapes')->middleware(['auth:api'])->group(function () {
     Route::get('/', [FrameShapeController::class, 'index']);
     Route::post('/', [FrameShapeController::class, 'store']);
     Route::get('/{id}', [FrameShapeController::class, 'show']);
-    Route::put('/{id}', [FrameShapeController::class, 'update']);
+    Route::patch('/{id}', [FrameShapeController::class, 'update']);
     Route::delete('/{id}', [FrameShapeController::class, 'destroy']);
 });
 
@@ -96,7 +98,7 @@ Route::prefix('colors')->group(function () {
     Route::get('/', [ColorController::class, 'index']);
     Route::post('/', [ColorController::class, 'store']);
     Route::get('/{id}', [ColorController::class, 'show']);
-    Route::put('/{id}', [ColorController::class, 'update']);
+    Route::patch('/{id}', [ColorController::class, 'update']);
     Route::delete('/{id}', [ColorController::class, 'destroy']);
 });
 
@@ -104,7 +106,7 @@ Route::prefix('sizes')->middleware(['auth:api'])->group(function () {
     Route::get('/', [SizeController::class, 'index']);
     Route::post('/', [SizeController::class, 'store']);
     Route::get('/{id}', [SizeController::class, 'show']);
-    Route::put('/{id}', [SizeController::class, 'update']);
+    Route::patch('/{id}', [SizeController::class, 'update']);
     Route::delete('/{id}', [SizeController::class, 'destroy']);
 });
 
@@ -148,6 +150,22 @@ Route::prefix('frame-sizes')->middleware(['auth:api'])->group(function () {
     Route::delete('/{id}', [FrameSizeController::class, 'destroy']);
 });
 
+Route::prefix('products')->group(function () {
+    Route::post('/', [ProductController::class, 'store']);
+    Route::get('/', [ProductController::class, 'index']);
+    Route::get('/{id}', [ProductController::class, 'show']);
+    Route::patch('/{id}', [ProductController::class, 'update']);
+    Route::put('/status/{id}', [ProductController::class, 'changeStatus']);
+    Route::delete('/{id}', [ProductController::class, 'destroy']);
+});
+
+Route::prefix('variants')->group(function () {
+    Route::post('/', [VariantController::class, 'store']);
+    Route::get('/', [VariantController::class, 'index']);
+    Route::get('/{id}', [VariantController::class, 'show']);
+    Route::put('/{id}', [VariantController::class, 'update']);
+    Route::delete('/{id}', [VariantController::class, 'destroy']);
+});
 
 Route::prefix('orders')->middleware(['auth:api'])->group(function () {
     Route::get('/', [OrderController::class, 'index']);

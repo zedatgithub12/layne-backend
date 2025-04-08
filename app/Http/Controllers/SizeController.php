@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\Request;
 use App\Models\Size;
 use Illuminate\Support\Str;
@@ -10,20 +11,40 @@ use Illuminate\Validation\ValidationException;
 
 class SizeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $sizes = Size::all();
+            $query = Size::query();
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('shorter_name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhereJsonContains('tags', $search);
+                });
+            }
+
+            if ($request->filled('status')) {
+                $status = $request->query('status');
+                $query->where('status', $status);
+            }
+
+            $limit = $request->input('limit', 10);
+            $Sizes = $query->paginate($limit);
+
+
 
             return response()->json([
                 'success' => true,
-                'message' => 'Sizes retrieved successfully',
-                'data' => $sizes
+                'message' => 'Sizes are retrieved successfully',
+                'data' => $Sizes
             ], 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching sizes',
+                'message' => 'Error fetching Sizes',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -35,14 +56,13 @@ class SizeController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'shorter_name' => 'nullable|string|max:255',
+                'width_range' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'lens_width' => 'required|integer|min:0',
-                'bridge_width' => 'required|integer|min:0',
-                'temple_length' => 'required|integer|min:0',
-                'status' => 'required|in:available,unavailable',
+                'tags' => 'nullable|array',
+                'tags.*' => 'string|max:50',
+                'status' => 'nullable|in:available,unavailable',
             ]);
-
-            $validated['slug'] = Str::slug($validated['name']);
 
             $size = Size::create($validated);
 
@@ -94,16 +114,13 @@ class SizeController extends Controller
 
             $validated = $request->validate([
                 'name' => 'sometimes|string|max:255',
+                'shorter_name' => 'sometimes|string|max:255',
+                'width_range' => 'sometimes|string|max:255',
                 'description' => 'nullable|string',
-                'lens_width' => 'sometimes|integer|min:0',
-                'bridge_width' => 'sometimes|integer|min:0',
-                'temple_length' => 'sometimes|integer|min:0',
+                'tags' => 'nullable|array',
+                'tags.*' => 'string|max:50',
                 'status' => 'sometimes|in:available,unavailable',
             ]);
-
-            if (isset($validated['name'])) {
-                $validated['slug'] = Str::slug($validated['name']);
-            }
 
             $size->update($validated);
 

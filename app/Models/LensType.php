@@ -10,12 +10,10 @@ class LensType extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $fillable = ['name', 'description', 'use_case', 'thickness', 'status'];
-
-    public $incrementing = false;
-    protected $keyType = 'string';
+    protected $fillable = ['name', 'description', 'thumbnail', 'tags', 'status'];
 
     protected $casts = [
         'status' => 'string',
+        'tags' => 'array',
     ];
 }

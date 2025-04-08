@@ -14,6 +14,9 @@ return new class extends Migration {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->string('slug')->unique();
+            $table->text('description');
+            $table->string('thumbnail')->nullable();
+            $table->json('tags')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });

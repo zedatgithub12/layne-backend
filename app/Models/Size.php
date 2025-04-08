@@ -12,11 +12,15 @@ class Size extends Model
 
     protected $fillable = [
         'name',
-        'slug',
+        'shorter_name',
+        'width_range',
         'description',
-        'lens_width',
-        'bridge_width',
-        'temple_length',
+        'tags',
         'status'
+    ];
+
+    protected $casts = [
+        'status' => 'string',
+        'tags' => 'array',
     ];
 }

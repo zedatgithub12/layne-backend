@@ -11,13 +11,20 @@ class Category extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $fillable = ['name', 'slug', 'status'];
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'thumbnail',
+        'tags',
+        'status'
+    ];
 
-    public $incrementing = false;
-    protected $keyType = 'string';
+
 
     protected $casts = [
         'status' => 'string',
+        'tags' => 'array'
     ];
 
     public static function boot()

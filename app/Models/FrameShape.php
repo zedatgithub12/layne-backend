@@ -14,21 +14,14 @@ class FrameShape extends Model
         'name',
         'slug',
         'description',
-        'rim_type',
-        'bridge_width',
-        'temple_length',
-        'lens_width',
-        'frame_material',
-        'face_shape_suitability',
+        'thumbnail',
+        'tags',
         'status',
     ];
 
     protected $casts = [
-        'bridge_width' => 'integer',
-        'temple_length' => 'integer',
-        'lens_width' => 'integer',
         'status' => 'string',
-        'frame_material' => 'string',
+        'tags' => 'array',
     ];
 
 }
