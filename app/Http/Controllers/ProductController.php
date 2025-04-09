@@ -179,13 +179,15 @@ class ProductController extends Controller
             $product->lens_types = $lensTypes;
 
             $imageHost = env('API_IMAGE_HOST');
-            $product->variants->each(function ($variant) use ($imageHost) {
-                if (is_array($variant->images)) {
-                    $variant->images = array_map(function ($imagePath) use ($imageHost) {
-                        return $imageHost . $imagePath;
-                    }, $variant->images);
-                }
-            });
+
+            foreach ($product->variants as $variant) {
+                $decodedImages = is_string($variant->images) ? json_decode($variant->images, true) : $variant->images;
+                $images = is_array($decodedImages) ? $decodedImages : [];
+                $variant->images = array_values(array_filter(array_map(function ($imagePath) use ($imageHost) {
+                    return is_string($imagePath) ? $imageHost . $imagePath : null;
+                }, $images)));
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'successfully done',
@@ -195,7 +197,8 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Product not found',
-            ], 404);
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
