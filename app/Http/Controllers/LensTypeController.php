@@ -34,7 +34,7 @@ class LensTypeController extends Controller
 
             // Prefix API_IMAGE_HOST to each thumbnail
             $lensTypes->getCollection()->transform(function ($lensType) {
-                $lensType->thumbnail = env('API_IMAGE_HOST') . $lensType->thumbnail;
+                $lensType->thumbnail = config('app.api_image_host') . $lensType->thumbnail;
                 return $lensType;
             });
 
@@ -95,7 +95,7 @@ class LensTypeController extends Controller
     {
         try {
             $lensType = LensType::findOrFail($id);
-            $lensType->thumbnail = env('API_IMAGE_HOST') . $lensType->thumbnail;
+            $lensType->thumbnail = config('app.api_image_host') . $lensType->thumbnail;
             return response()->json([
                 'success' => true,
                 'message' => 'Lens type retrieved successfully',

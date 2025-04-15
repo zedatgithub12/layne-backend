@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Validator;
 
 
 class AuthController extends Controller
@@ -18,14 +19,15 @@ class AuthController extends Controller
             return response()->json(["success" => false, "message" => ""], 404);
         }
         return response()->json(['users' => $users], 200);
-
-
     }
+
     public function createAccount(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'nullable|email|unique:users,email',
+            'phone' => 'required|unique:users,phone',
+            'gender' => 'nullable|string|in:male,female',
             'password' => 'required|min:6',
             'role' => 'required|string|exists:roles,name'
         ]);
@@ -33,7 +35,9 @@ class AuthController extends Controller
         // Create the user
         $user = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'],
+            'gender' => $validated['gender'],
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -53,11 +57,25 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
+
+        $validator = Validator::make($request->all(), [
+            'username' => 'required',
             'password' => 'required'
         ]);
 
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $username = $request->input('username');
+        $password = $request->input('password');
+
+
+        $fieldType = filter_var($username, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+        $credentials = [$fieldType => $username, 'password' => $password];
+
+        // Attempt authentication
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
@@ -69,6 +87,8 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token,
             'user' => $user,
+            'roles' => $roles,
+            'permissions' => $permissions
         ]);
     }
 

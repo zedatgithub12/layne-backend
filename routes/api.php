@@ -61,7 +61,7 @@ Route::prefix('customers')->middleware(['auth:api'])->group(function () {
     Route::delete('/{id}', [CustomerController::class, 'destroy']);
 });
 
-Route::prefix('categories')->middleware(['auth:api'])->group(function () {
+Route::prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']);
     Route::post('/', [CategoryController::class, 'store']);
     Route::get('/{id}', [CategoryController::class, 'show']);
@@ -69,7 +69,7 @@ Route::prefix('categories')->middleware(['auth:api'])->group(function () {
     Route::delete('/{id}', [CategoryController::class, 'destroy']);
 });
 
-Route::prefix('lens-types')->middleware(['auth:api'])->group(function () {
+Route::prefix('lens-types')->group(function () {
     Route::get('/', [LensTypeController::class, 'index']);
     Route::post('/', [LensTypeController::class, 'store']);
     Route::get('/{id}', [LensTypeController::class, 'show']);
@@ -86,7 +86,7 @@ Route::prefix('lenses')->middleware(['auth:api'])->group(function () {
     Route::delete('/{id}', [LensController::class, 'destroy']);
 });
 
-Route::prefix('frame-shapes')->middleware(['auth:api'])->group(function () {
+Route::prefix('frame-shapes')->group(function () {
     Route::get('/', [FrameShapeController::class, 'index']);
     Route::post('/', [FrameShapeController::class, 'store']);
     Route::get('/{id}', [FrameShapeController::class, 'show']);

@@ -35,14 +35,15 @@ class FrameShapeController extends Controller
 
             // Prefix API_IMAGE_HOST to each thumbnail
             $frameShapes->getCollection()->transform(function ($frameShape) {
-                $frameShape->thumbnail = env('API_IMAGE_HOST') . $frameShape->thumbnail;
+                $frameShape->thumbnail = config('app.api_image_host') . $frameShape->thumbnail;
                 return $frameShape;
             });
 
             return response()->json([
                 'success' => true,
                 'message' => 'Frame Shapes retrieved successfully',
-                'data' => $frameShapes
+                'data' => $frameShapes,
+
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -94,7 +95,7 @@ class FrameShapeController extends Controller
     {
         try {
             $frameShape = FrameShape::findOrFail($id);
-            $frameShape->thumbnail = env('API_IMAGE_HOST') . $frameShape->thumbnail;
+            $frameShape->thumbnail = config('app.api_image_host') . $frameShape->thumbnail;
 
             return response()->json([
                 'success' => true,

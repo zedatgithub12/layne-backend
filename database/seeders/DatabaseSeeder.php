@@ -16,15 +16,17 @@ class DatabaseSeeder extends Seeder
     {
         User::factory(5)->create()->each(function ($user, $index) {
             if ($index < 2) {
-            $user->assignRole('admin');
+                $user->assignRole('admin');
             } else {
-            $user->assignRole('user');
+                $user->assignRole('user');
             }
         });
 
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'phone' => '251949390840',
+            'gender' => 'male',
             'password' => 'password',
         ])->assignRole('admin');
 
@@ -33,7 +35,7 @@ class DatabaseSeeder extends Seeder
 
         foreach ($models as $model) {
             foreach ($actions as $action) {
-            Permission::firstOrCreate(['name' => "$action $model"]);
+                Permission::firstOrCreate(['name' => "$action $model"]);
             }
         }
     }

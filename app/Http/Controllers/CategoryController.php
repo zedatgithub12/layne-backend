@@ -33,9 +33,9 @@ class CategoryController extends Controller
             $categories = $query->paginate($limit);
 
             // Prefix API_IMAGE_HOST to each thumbnail
-            $categories->getCollection()->transform(function ($frameShape) {
-                $frameShape->thumbnail = env('API_IMAGE_HOST') . $frameShape->thumbnail;
-                return $frameShape;
+            $categories->getCollection()->transform(function ($thumbnailImage) {
+                $thumbnailImage->thumbnail = config('app.api_image_host') . $thumbnailImage->thumbnail;
+                return $thumbnailImage;
             });
 
             return response()->json([
