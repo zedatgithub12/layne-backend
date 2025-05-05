@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Route;
 Route::get("/all-users", [AuthController::class, 'getAllUsers']);
 Route::post('/user/create', [AuthController::class, 'createAccount']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::prefix('/roles')->middleware(['auth:api'])->group(function () {
     Route::post('/create', [RolePermissionController::class, 'createRole']);
@@ -153,6 +154,8 @@ Route::prefix('frame-sizes')->middleware(['auth:api'])->group(function () {
 Route::prefix('products')->group(function () {
     Route::post('/', [ProductController::class, 'store']);
     Route::get('/', [ProductController::class, 'index']);
+    Route::get('/popular', [ProductController::class, 'getPopularProducts']);
+    Route::get('/geeks', [ProductController::class, 'getGeeksProducts']);
     Route::get('/{id}', [ProductController::class, 'show']);
     Route::patch('/{id}', [ProductController::class, 'update']);
     Route::put('/status/{id}', [ProductController::class, 'changeStatus']);

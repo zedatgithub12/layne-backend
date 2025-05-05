@@ -156,6 +156,101 @@ class ProductController extends Controller
             $limit = $request->input('limit', 10);
             $products = $query->paginate($limit);
 
+            $imageHost = env('API_IMAGE_HOST');
+
+            foreach ($products as $product) {
+                foreach ($product->variants as $variant) {
+                    $decodedImages = is_string($variant->images) ? json_decode($variant->images, true) : $variant->images;
+                    $images = is_array($decodedImages) ? $decodedImages : [];
+                    $variant->images = array_values(array_filter(array_map(function ($imagePath) use ($imageHost) {
+                        return is_string($imagePath) ? $imageHost . $imagePath : null;
+                    }, $images)));
+                }
+            }
+
+
+            return response()->json([
+                'success' => true,
+                'message' => 'products retrieved successfully',
+                'data' => $products
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching products',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getPopularProducts(Request $request)
+    {
+        try {
+            $query = Product::with('variants');
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhereJsonContains('tags', $search);
+                });
+            }
+
+            if ($request->filled('status')) {
+                $status = $request->query('status');
+                $query->where('status', $status);
+            }
+
+            $limit = $request->input('limit', 10);
+            $products = $query->paginate($limit);
+
+            $imageHost = env('API_IMAGE_HOST');
+
+            foreach ($products as $product) {
+                foreach ($product->variants as $variant) {
+                    $decodedImages = is_string($variant->images) ? json_decode($variant->images, true) : $variant->images;
+                    $images = is_array($decodedImages) ? $decodedImages : [];
+                    $variant->images = array_values(array_filter(array_map(function ($imagePath) use ($imageHost) {
+                        return is_string($imagePath) ? $imageHost . $imagePath : null;
+                    }, $images)));
+                }
+            }
+
+
+            return response()->json([
+                'success' => true,
+                'message' => 'products retrieved successfully',
+                'data' => $products
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching products',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getGeeksProducts(Request $request)
+    {
+        try {
+            $query = Product::with('variants');
+            $limit = $request->input('limit', 10);
+            $products = $query->paginate($limit);
+
+            $imageHost = env('API_IMAGE_HOST');
+
+            foreach ($products as $product) {
+                foreach ($product->variants as $variant) {
+                    $decodedImages = is_string($variant->images) ? json_decode($variant->images, true) : $variant->images;
+                    $images = is_array($decodedImages) ? $decodedImages : [];
+                    $variant->images = array_values(array_filter(array_map(function ($imagePath) use ($imageHost) {
+                        return is_string($imagePath) ? $imageHost . $imagePath : null;
+                    }, $images)));
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'products retrieved successfully',
@@ -176,9 +271,14 @@ class ProductController extends Controller
             $product = Product::with('variants')->findOrFail($id);
             $lensTypeIds = $product->lens_types;
             $lensTypes = DB::table('lens_types')->whereIn('id', $lensTypeIds)->get();
-            $product->lens_types = $lensTypes;
 
             $imageHost = env('API_IMAGE_HOST');
+
+            foreach ($lensTypes as $lens) {
+                $lens->thumbnail = $imageHost . $lens->thumbnail;
+            }
+
+            $product->lens_types = $lensTypes;
 
             foreach ($product->variants as $variant) {
                 $decodedImages = is_string($variant->images) ? json_decode($variant->images, true) : $variant->images;
@@ -187,6 +287,8 @@ class ProductController extends Controller
                     return is_string($imagePath) ? $imageHost . $imagePath : null;
                 }, $images)));
             }
+
+
 
             return response()->json([
                 'success' => true,

@@ -12,8 +12,17 @@ class Order extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = [
-        'customer_id',
+        'user_id',
         'order_number',
+        'frame_id',
+        'frame_name',
+        'variant_id',
+        'lens',
+        'lens_type',
+        'lens_variant_name',
+        'lens_variant_value',
+        'need_prescription',
+        'prescription',
         'total_price',
         'shipping_address',
         'shipping_method',
@@ -32,8 +41,21 @@ class Order extends Model
         });
     }
 
-    public function customer()
+    public function user()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(User::class);
     }
+
+    public function frame()
+    {
+        return $this->belongsTo(Product::class, 'frame_id', 'id');
+    }
+
+    public function variant()
+    {
+        return $this->hasOne(Variant::class, 'id', 'variant_id');
+    }
+
+
 }
+

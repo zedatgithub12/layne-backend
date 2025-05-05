@@ -12,10 +12,19 @@ return new class extends Migration {
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('customer_id');
+            $table->id('user_id');
             $table->string('order_number')->unique();
+            $table->uuid('frame_id');
+            $table->string('frame_name');
+            $table->uuid('variant_id');
+            $table->string('lens');
+            $table->string('lens_type')->nullable();
+            $table->string('lens_variant_name')->nullable();
+            $table->string('lens_variant_value')->nullable();
+            $table->boolean('need_prescription')->nullable();
+            $table->string('prescription')->nullable();
             $table->float('total_price');
-            $table->string('shipping_address');
+            $table->string('shipping_address')->nullable();
             $table->string('shipping_method')->nullable();
             $table->enum('payment_status', ['pending', 'completed'])->default('pending');
             $table->string('delivery_confirmation_code')->unique();
@@ -24,7 +33,7 @@ return new class extends Migration {
             $table->timestamps();
 
             // Foreign key constraint
-            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
         });
     }
