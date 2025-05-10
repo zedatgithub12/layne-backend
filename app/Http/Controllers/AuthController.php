@@ -3,10 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Auth;
+use Exception;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Validator;
+use App\Models\Customer;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 class AuthController extends Controller
@@ -21,6 +26,7 @@ class AuthController extends Controller
         return response()->json(['users' => $users], 200);
     }
 
+
     public function createAccount(Request $request)
     {
         $validated = $request->validate([
@@ -32,28 +38,57 @@ class AuthController extends Controller
             'role' => 'required|string|exists:roles,name'
         ]);
 
-        // Create the user
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'] ?? null,
-            'phone' => $validated['phone'],
-            'gender' => $validated['gender'],
-            'password' => Hash::make($validated['password']),
-        ]);
+        DB::beginTransaction();
 
-        // Assign role
-        $user->assignRole($validated['role']);
+        try {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'] ?? null,
+                'phone' => $validated['phone'],
+                'gender' => $validated['gender'],
+                'password' => Hash::make($validated['password']),
+            ]);
 
-        // Generate JWT token
-        $token = JWTAuth::fromUser($user);
+            $user->assignRole($validated['role']);
+            if ($validated['role'] === 'user') {
+                Customer::create([
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'gender' => $user->gender,
+                    'phone_number' => $user->phone,
+                    'email' => $user->email,
+                    'is_verified' => false,
+                    'status' => 'active',
+                    'otp_code' => null,
+                    'otp_expires_at' => null,
+                    'birthdate' => null,
+                    'shipping_address' => null,
+                ]);
+            }
 
-        return response()->json([
-            "success" => true,
-            'message' => 'User registered successfully',
-            'user' => $user,
-            'token' => $token
-        ], 201);
+            // All good, commit transaction
+            DB::commit();
+
+            // Generate JWT token
+            $token = JWTAuth::fromUser($user);
+
+            return response()->json([
+                "success" => true,
+                'message' => 'User registered successfully',
+                'user' => $user,
+                'token' => $token
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Account creation failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create user account. Please try again.'
+            ], 500);
+        }
     }
+
 
     public function login(Request $request)
     {
@@ -64,7 +99,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => $validator->errors()], 422);
         }
 
         $username = $request->input('username');
@@ -101,5 +136,60 @@ class AuthController extends Controller
     public function profile()
     {
         return response()->json(auth()->user());
+    }
+
+    public function destroy()
+    {
+        try {
+            $id = Auth::id();
+            $user = User::findOrFail($id);
+            if ($user->hasRole('user')) {
+                $customer = Customer::where('user_id', $user->id)->first();
+                if ($customer) {
+                    $customer->delete();
+                }
+            }
+
+            $user->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Deleted successfully',
+                'data' => null
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6',
+        ]);
+
+        $user = auth()->user();
+
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Current password is incorrect'
+            ], 400);
+        }
+
+        // Update the password
+        $user->password = Hash::make($validated['new_password']);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully'
+        ], 200);
     }
 }

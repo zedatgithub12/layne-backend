@@ -53,7 +53,7 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
-    'api_image_host' => 'http://192.168.1.2:8000/storage/',
+    'api_image_host' => 'http://192.168.53.87:8000/storage/',
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

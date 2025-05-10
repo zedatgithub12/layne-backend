@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use Auth;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Storage;
 
 class CustomerController extends Controller
 {
@@ -23,6 +25,7 @@ class CustomerController extends Controller
     {
         try {
             $validated = $request->validate([
+                'user_id' => 'required|string|max:255',
                 'name' => 'required|string|max:255',
                 'gender' => 'nullable|in:male,female,other',
                 'birthdate' => 'nullable|date',
@@ -78,19 +81,15 @@ class CustomerController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $customer = Customer::findOrFail($id);
+
+            $customer = Customer::where('user_id', $id)->first();
 
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:255',
                 'gender' => 'nullable|in:male,female',
                 'birthdate' => 'nullable|date',
-                'phone_number' => 'sometimes|required|string|max:20|unique:customers,phone_number,' . $id,
                 'email' => 'nullable|email|unique:customers,email,' . $id . '|max:255',
-                'otp_code' => 'sometimes|required|integer',
-                'otp_expires_at' => 'sometimes|required|date|after:now',
-                'is_verified' => 'sometimes|required|boolean',
                 'shipping_address' => 'sometimes|required|string',
-                'status' => 'sometimes|required|in:active,inactive,suspended',
             ]);
 
             $customer->update($validated);
@@ -130,6 +129,56 @@ class CustomerController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting customer',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateAvatar(Request $request)
+    {
+        $id = Auth::id();
+        try {
+            $validated = $request->validate([
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            $customer = Customer::where('user_id', $id)->get();
+
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Customer not found'
+                ], 404);
+            }
+
+            $file = $request->file('avatar');
+            $newPath = $file->store('images', 'public');
+
+            // Delete old avatar if it exists
+            if ($customer->avatar && Storage::disk('public')->exists($customer->avatar)) {
+                Storage::disk('public')->delete($customer->avatar);
+            }
+
+            // Update and save new avatar path
+            $customer->avatar = $newPath;
+            $customer->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer avatar updated successfully',
+                'data' => $customer
+            ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating avatar',
                 'error' => $e->getMessage()
             ], 500);
         }

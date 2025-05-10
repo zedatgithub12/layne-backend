@@ -1,6 +1,7 @@
 <?php
 
 
+use App\Http\Controllers\AdController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\CustomerController;
@@ -29,6 +30,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get("/all-users", [AuthController::class, 'getAllUsers']);
 Route::post('/user/create', [AuthController::class, 'createAccount']);
+Route::delete('/user/delete', [AuthController::class, 'destroy'])->middleware(['auth:api']);
+Route::put('/user/change-password', [AuthController::class, 'changePassword'])->middleware(['auth:api']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -57,9 +60,20 @@ Route::prefix('vendors')->middleware(['auth:api'])->group(function () {
 Route::prefix('customers')->middleware(['auth:api'])->group(function () {
     Route::get('/', [CustomerController::class, 'index']);
     Route::post('/', [CustomerController::class, 'store']);
+    Route::post('/avatar', [CustomerController::class, 'updateAvatar']);
     Route::get('/{id}', [CustomerController::class, 'show']);
     Route::put('/{id}', [CustomerController::class, 'update']);
     Route::delete('/{id}', [CustomerController::class, 'destroy']);
+});
+
+
+Route::prefix('ads')->group(function () {
+    Route::get('/', [AdController::class, 'index']);
+    Route::post('/', [AdController::class, 'store']);
+    Route::get('/{id}', [AdController::class, 'show']);
+    Route::patch('/{id}', [AdController::class, 'update']);
+    Route::delete('/{id}', [AdController::class, 'destroy']);
+    Route::patch('/{id}/status', [AdController::class, 'changeStatus']);
 });
 
 Route::prefix('categories')->group(function () {
